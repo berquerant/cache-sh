@@ -188,7 +188,18 @@ test_cache_function_ret() {
     test_cache_function_assert_success "key2" 4
 }
 
+test_cache_coded() {
+    export CACHE_ENCODE="base64"
+    export CACHE_DECODE="base64 -d"
+
+    test_cache_scenario
+
+    export CACHE_ENCODE=""
+    export CACHE_DECODE=""
+}
+
 set -e
 test_run_multi "test_cache_scenario" \
                "test_cache_function" \
-               "test_cache_function_ret"
+               "test_cache_function_ret" \
+               "test_cache_coded"

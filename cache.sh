@@ -21,9 +21,33 @@
 #   CACHE_TTL
 #     Cache record ttl seconds.
 #     Default is 300
+#
+#   CACHE_ENCODE
+#     Command to encode cache record.
+#     Default is cat -
+#
+#   CACHE_DECODE
+#     Command to decode cache record.
+#     Default is cat -
 
 __cache_kv_sep() {
     echo "${CACHE_KV_SEP:-\t}"
+}
+
+__cache_encode() {
+    if [ -n "$CACHE_ENCODE" ] ; then
+        $CACHE_ENCODE
+    else
+        cat -
+    fi
+}
+
+__cache_decode() {
+    if [ -n "$CACHE_DECODE" ] ; then
+        $CACHE_DECODE
+    else
+        cat -
+    fi
 }
 
 __cache_dir() {
@@ -75,6 +99,8 @@ cache_set() {
         return 1
     fi
 
+    __cache_set_key="$(echo "$__cache_set_key" | __cache_encode)"
+    __cache_set_value="$(echo "$__cache_set_value" | __cache_encode)"
     __cache_set_timestamp="$(__cache_timestamp_now)"
     __cache_set_kv_sep="$(__cache_kv_sep)"
     __cache_echo "${__cache_set_timestamp}${__cache_set_kv_sep}${__cache_set_key}${__cache_set_kv_sep}${__cache_set_value}${__cache_set_kv_sep}${__cache_set_ttl}" >> "$__cache_set_file"
@@ -127,12 +153,13 @@ __cache_get() {
 #
 # Exit status is 1 if not found
 cache_get() {
-    __cache_get_got="$(__cache_get "$1" "$2")"
+    __cache_get_key="$(echo "$1" | __cache_encode)"
+    __cache_get_got="$(__cache_get "$__cache_get_key" "$2")"
     if [ -z "$__cache_get_got" ] ; then
         # empty is invalid
         return 1
     fi
-    __cache_echo "$__cache_get_got" | __cache_line2value
+    __cache_echo "$__cache_get_got" | __cache_line2value | __cache_decode
 }
 
 # Shrink db file by removing invalid records
