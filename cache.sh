@@ -3,7 +3,7 @@
 # Provides functions for simple cashing
 
 # Cache line format:
-# TIMESTAMP\tKEY\tVALUE\tTTL_SECOND
+# TIMESTAMP\tTTL_SECOND\tKEY\tVALUE
 #
 # File for cache:
 # Default is cache_directory/.cache
@@ -103,15 +103,15 @@ cache_set() {
     __cache_set_value="$(echo "$__cache_set_value" | __cache_encode)"
     __cache_set_timestamp="$(__cache_timestamp_now)"
     __cache_set_kv_sep="$(__cache_kv_sep)"
-    __cache_echo "${__cache_set_timestamp}${__cache_set_kv_sep}${__cache_set_key}${__cache_set_kv_sep}${__cache_set_value}${__cache_set_kv_sep}${__cache_set_ttl}" >> "$__cache_set_file"
+    __cache_echo "${__cache_set_timestamp}${__cache_set_kv_sep}${__cache_set_ttl}${__cache_set_kv_sep}${__cache_set_key}${__cache_set_kv_sep}${__cache_set_value}" >> "$__cache_set_file"
 }
 
 __cache_line2key() {
-    __cache_awk '{print $2}' "$@"
+    __cache_awk '{print $3}' "$@"
 }
 
 __cache_line2value() {
-    __cache_awk '{print $3}' "$@"
+    __cache_awk '{print $4}' "$@"
 }
 
 __cache_get_raw() {
@@ -121,13 +121,13 @@ __cache_get_raw() {
 
     # select records by key
     __cache_awk -v key="$__cache_get_raw_key" \
-                '$2 == key' \
+                '$3 == key' \
                 "$__cache_get_file" |\
         # select latest record
         tail -n 1 |\
         # ignore expired record
         __cache_awk -v now="$__cache_get_raw_now" \
-                    'now <= $1 + $4'
+                    'now <= $1 + $2'
 }
 
 __cache_get() {
