@@ -5,10 +5,10 @@ test_log() {
 }
 
 test_run() {
-    test_log "Start $1"
+    test_log "Start $1 ----------"
     "$1"
     test_run_ret=$?
-    test_log "End $1"
+    test_log "End $1 ------------"
     return $test_run_ret
 }
 
@@ -17,8 +17,7 @@ test_run_multi() {
 
     test_run_multi_ret=0
     while [ -n "$1" ] ; do
-        test_run $1
-        test_run_multi_r=$?
+        test_run_multi_r="$((test_run $1 && echo 0) || echo 1)"
         if [ $test_run_multi_r -gt 0 ] ; then
             test_run_multi_ret=$test_run_multi_r
         fi
