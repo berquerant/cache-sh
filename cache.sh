@@ -73,6 +73,10 @@ __cache_kv_file() {
     __ensure_file "${1:-$(__cache_kv_dir)/.cache}"
 }
 
+__cache_function_dir() {
+    __ensure_dir "$(__cache_root "$1")/function/"
+}
+
 __cache_ttl() {
     echo "${1:-${CACHE_TTL:-300}}"
 }
@@ -218,7 +222,7 @@ cache_function() {
     __cache_function_function="$1"
     __cache_function_key="$2"
     __cache_function_ttl="$(__cache_ttl "$3")"
-    __cache_function_file="$(__cache_kv_dir "$4")/${__cache_function_function}"
+    __cache_function_file="$(__cache_function_dir "$4")/${__cache_function_function}"
     touch "$__cache_function_file"
 
     __cache_function_got=""
