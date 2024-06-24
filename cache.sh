@@ -183,6 +183,16 @@ cache_vacuum() {
     mv -f "$__cache_vaccum_tmp_file" "$__cache_vaccum_file"
 }
 
+# Shrink all db files in cache directory
+#
+# $1: cache directory, optional
+cache_vacuum_all() {
+    __cache_vacuum_all_dir="$(__cache_dir "$1")"
+    find "$__cache_vacuum_all_dir" -type f | while read line ; do
+        cache_vacuum "$line"
+    done
+}
+
 # Get value from cache. If not, call the function and cache the result
 #
 # $1: name of function that take 1 argument
