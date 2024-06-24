@@ -62,18 +62,15 @@ __ensure_file() {
 }
 
 __cache_root() {
-    __cache_root_dir="${1:-${CACHE_DIR:-$HOME/.cache-sh/}}"
-    __ensure_dir "$__cache_root_dir"
+    __ensure_dir "${1:-${CACHE_DIR:-$HOME/.cache-sh/}}"
 }
 
 __cache_kv_dir() {
-    __cache_kv_dir="$(__cache_root "$1")/kv/"
-    __ensure_dir "$__cache_kv_dir"
+    __ensure_dir "$(__cache_root "$1")/kv/"
 }
 
 __cache_kv_file() {
-    __cache_kv="${1:-$(__cache_kv_dir)/.cache}"
-    __ensure_file "$__cache_kv"
+    __ensure_file "${1:-$(__cache_kv_dir)/.cache}"
 }
 
 __cache_ttl() {
