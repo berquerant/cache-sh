@@ -50,22 +50,30 @@ __cache_decode() {
     fi
 }
 
+__ensure_dir() {
+    mkdir -p "$1"
+    echo "$1"
+}
+
+__ensure_file() {
+    mkdir -p "$(dirname "$1")"
+    touch "$1"
+    echo "$1"
+}
+
 __cache_root() {
     __cache_root_dir="${1:-${CACHE_DIR:-$HOME/.cache-sh/}}"
-    mkdir -p "$__cache_root_dir"
-    echo "$__cache_root_dir"
+    __ensure_dir "$__cache_root_dir"
 }
 
 __cache_kv_dir() {
     __cache_kv_dir="$(__cache_root "$1")/kv/"
-    mkdir -p "$__cache_kv_dir"
-    echo "$__cache_kv_dir"
+    __ensure_dir "$__cache_kv_dir"
 }
 
 __cache_kv_file() {
     __cache_kv="${1:-$(__cache_kv_dir)/.cache}"
-    mkdir -p "$(dirname "$__cache_kv")"
-    echo "$__cache_kv"
+    __ensure_file "$__cache_kv"
 }
 
 __cache_ttl() {
