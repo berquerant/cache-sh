@@ -132,7 +132,7 @@ test_cache_util_function_function_called() {
 test_cache_function_cache_dir="$(mktemp -d)"
 
 test_cache_util_function_call() {
-    test_log "test_cache_util_function_call $*"
+    test_log "test_cache_util_function_call $* CACHE_FUNCTION_OVERWRITE=${CACHE_FUNCTION_OVERWRITE}"
     test_cache_util_function_call_key="$1"
     test_cache_util_function_call_ttl="$2"
     test_cache_util_function_call_count="$3"
@@ -151,6 +151,10 @@ test_cache_function() {
     test_cache_util_function_call "key3" 2 3
     sleep 3
     test_cache_util_function_call "key3" 300 4
+    test_cache_util_function_call "key3" 300 4
+    CACHE_FUNCTION_OVERWRITE=1 test_cache_util_function_call "key3" 300 5
+    CACHE_FUNCTION_OVERWRITE=1 test_cache_util_function_call "key3" 300 6
+    test_cache_util_function_call "key3" 300 6
 }
 
 test_cache_function_ret() {

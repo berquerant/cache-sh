@@ -190,7 +190,8 @@ cache_vacuum() {
 # $3: cache ttl, optional
 # $4: cache db directory, optional
 #
-# Cache values into cache_dir/function_name
+# Cache values into cache_dir/function_name.
+# Write cache even if cache hit when CACHE_FUNCTION_OVERWRITE is not empty.
 # Exit status is 1 if function do not output
 cache_function() {
     __cache_function_function="$1"
@@ -199,8 +200,11 @@ cache_function() {
     __cache_function_file="$(__cache_dir "$4")/${__cache_function_function}"
     touch "$__cache_function_file"
 
-    # try to get cache
-    __cache_function_got="$(cache_get "$__cache_function_key" "$__cache_function_file" || echo)"
+    __cache_function_got=""
+    if [ -z "$CACHE_FUNCTION_OVERWRITE" ] ; then
+        # try to get cache
+        __cache_function_got="$(cache_get "$__cache_function_key" "$__cache_function_file" || echo)"
+    fi
     if [ -z "$__cache_function_got" ] ; then
         # cache miss
         __cache_function_got="$($__cache_function_function "$__cache_function_key" || echo)"
