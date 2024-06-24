@@ -50,16 +50,22 @@ __cache_decode() {
     fi
 }
 
-__cache_dir() {
-    __cache_destination_dir="${1:-${CACHE_DIR:-$HOME/.cache-sh/}}"
-    mkdir -p "$__cache_destination_dir"
-    echo "$__cache_destination_dir"
+__cache_root() {
+    __cache_root_dir="${1:-${CACHE_DIR:-$HOME/.cache-sh/}}"
+    mkdir -p "$__cache_root_dir"
+    echo "$__cache_root_dir"
 }
 
-__cache_file() {
-    __cache_destination="${1:-$(__cache_dir)/.cache}"
-    mkdir -p "$(dirname "$__cache_destination")"
-    echo "$__cache_destination"
+__cache_kv_dir() {
+    __cache_kv_dir="$(__cache_root "$1")/kv/"
+    mkdir -p "$__cache_kv_dir"
+    echo "$__cache_kv_dir"
+}
+
+__cache_kv_file() {
+    __cache_kv="${1:-$(__cache_kv_dir)/.cache}"
+    mkdir -p "$(dirname "$__cache_kv")"
+    echo "$__cache_kv"
 }
 
 __cache_ttl() {
@@ -93,7 +99,7 @@ cache_set() {
     __cache_set_key="$1"
     __cache_set_value="$2"
     __cache_set_ttl="$(__cache_ttl "$3")"
-    __cache_set_file="$(__cache_file "$4")"
+    __cache_set_file="$(__cache_kv_file "$4")"
 
     if [ -z "$__cache_set_key" ] || [ -z "$__cache_set_value" ] || [ -z "$__cache_set_ttl" ] ; then
         return 1
@@ -132,7 +138,7 @@ __cache_get_raw() {
 
 __cache_get() {
     __cache_get_key="$1"
-    __cache_get_file="$(__cache_file "$2")"
+    __cache_get_file="$(__cache_kv_file "$2")"
 
     if [ ! -f "$__cache_get_file" ] ; then
        return
@@ -166,7 +172,7 @@ cache_get() {
 #
 # $1: cache db file, optional
 cache_vacuum() {
-    __cache_vaccum_file="$(__cache_file $1)"
+    __cache_vaccum_file="$(__cache_kv_file "$1")"
     # collect all keys
     __cache_vaccum_keys="$(mktemp)"
     __cache_line2key "$__cache_vaccum_file" | sort -u > "$__cache_vaccum_keys"
@@ -187,7 +193,7 @@ cache_vacuum() {
 #
 # $1: cache directory, optional
 cache_vacuum_all() {
-    __cache_vacuum_all_dir="$(__cache_dir "$1")"
+    __cache_vacuum_all_dir="$(__cache_kv_dir "$1")"
     find "$__cache_vacuum_all_dir" -type f | while read line ; do
         cache_vacuum "$line"
     done
@@ -207,7 +213,7 @@ cache_function() {
     __cache_function_function="$1"
     __cache_function_key="$2"
     __cache_function_ttl="$(__cache_ttl "$3")"
-    __cache_function_file="$(__cache_dir "$4")/${__cache_function_function}"
+    __cache_function_file="$(__cache_kv_dir "$4")/${__cache_function_function}"
     touch "$__cache_function_file"
 
     __cache_function_got=""
