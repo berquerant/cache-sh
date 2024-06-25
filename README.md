@@ -27,3 +27,15 @@ add1() {
 cache_function add1 1 # take 1 second to get 2
 cache_function add1 1 # get 2 instantly
 ```
+
+## Function IO caches
+
+``` shell
+. ./cache.sh
+test_rev() {
+  sleep 1
+  rev
+}
+echo hoge | cache_function_io test_rev # egoh, take 1 second
+echo hoge | cache_function_io test_rev # egoh, instantly
+```
