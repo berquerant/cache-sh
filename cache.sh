@@ -241,7 +241,7 @@ cache_vacuum_all() {
 #
 # Cache values into cache_dir/function_name.
 # Write cache even if cache hit when CACHE_FUNCTION_OVERWRITE is not empty.
-# Exit status is 1 if function do not output
+# Exit status is 1 if function do not output, 2 if function failed.
 cache_function() {
     __cache_function_function="$1"
     __cache_function_key="$2"
@@ -256,7 +256,11 @@ cache_function() {
     fi
     if [ -z "$__cache_function_got" ] ; then
         # cache miss
-        __cache_function_got="$($__cache_function_function "$__cache_function_key" || echo)"
+        __cache_function_ret="$(mktemp)"
+        __cache_function_got="$($__cache_function_function "$__cache_function_key" || echo $? > "$__cache_function_ret")"
+        if [ -s "$__cache_function_ret" ] ; then
+            return 2
+        fi
         if [ -z "$__cache_function_got" ] ; then
             # empty output is invalid
             return 1

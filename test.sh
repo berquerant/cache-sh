@@ -191,6 +191,14 @@ test_cache_function_ret() {
     test_cache_function_assert_success "key1" 3
     test_cache_function_assert_success "key1" 3
     test_cache_function_assert_success "key2" 4
+
+    test_cache_function_ret_function() {
+        test_cache_util_incr_count "$test_cache_function_ret_function_call_count_file"
+        echo "$1"
+        return 1
+    }
+
+    test_cache_function_assert_failure "key3" 5 2
 }
 
 test_cache_function_io() {
