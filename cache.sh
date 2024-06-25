@@ -3,7 +3,7 @@
 # Provides functions for simple cashing
 
 # Cache line format:
-# TIMESTAMP\tTTL_SECOND\tKEY\tVALUE
+# TIMESTAMP TTL_SECOND KEY VALUE
 #
 # File for cache:
 # Default is cache_directory/.cache
@@ -12,7 +12,7 @@
 # Environment variables:
 #   CACHE_KV_SEP
 #     Cache line separator.
-#     Default is \t
+#     Default is a space
 #
 #   CACHE_DIR
 #     Diretory for cache files.
@@ -31,7 +31,7 @@
 #     Default is base64 --decode
 
 __cache_kv_sep() {
-    echo "${CACHE_KV_SEP:-\t}"
+    echo "${CACHE_KV_SEP:- }"
 }
 
 __cache_encode() {
