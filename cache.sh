@@ -24,11 +24,11 @@
 #
 #   CACHE_ENCODE
 #     Command to encode cache record.
-#     Default is cat -
+#     Default is base64
 #
 #   CACHE_DECODE
 #     Command to decode cache record.
-#     Default is cat -
+#     Default is base64 --decode
 
 __cache_kv_sep() {
     echo "${CACHE_KV_SEP:-\t}"
@@ -38,7 +38,7 @@ __cache_encode() {
     if [ -n "$CACHE_ENCODE" ] ; then
         $CACHE_ENCODE
     else
-        cat -
+        base64
     fi
 }
 
@@ -46,7 +46,7 @@ __cache_decode() {
     if [ -n "$CACHE_DECODE" ] ; then
         $CACHE_DECODE
     else
-        cat -
+        base64 --decode
     fi
 }
 
