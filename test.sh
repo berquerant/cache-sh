@@ -174,12 +174,14 @@ test_cache_function_ret() {
     }
     test_cache_function_assert_failure() {
         test_log "test_cache_function_assert_failure $*"
-        ! cache_function test_cache_function_ret_function "$1" 300 "$test_cache_function_cache_dir" > /dev/null
+        test_cache_function_assert_failure_ret=0
+        cache_function test_cache_function_ret_function "$1" 300 "$test_cache_function_cache_dir" > /dev/null || test_cache_function_assert_failure_ret=$?
         test_cache_function_ret_function_called "$2"
+        [ "$test_cache_function_assert_failure_ret" = "$3" ]
     }
 
-    test_cache_function_assert_failure "key1" 1
-    test_cache_function_assert_failure "key1" 2
+    test_cache_function_assert_failure "key1" 1 1
+    test_cache_function_assert_failure "key1" 2 1
 
     test_cache_function_ret_function() {
         test_cache_util_incr_count "$test_cache_function_ret_function_call_count_file"
