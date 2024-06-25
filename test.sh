@@ -17,7 +17,7 @@ test_run_multi() {
 
     test_run_multi_ret=0
     while [ -n "$1" ] ; do
-        test_run_multi_r="$((test_run $1 && echo 0) || echo 1)"
+        test_run_multi_r="$((test_run $1 > /dev/stderr && echo 0) || echo 1)"
         if [ $test_run_multi_r -gt 0 ] ; then
             test_run_multi_ret=$test_run_multi_r
         fi
@@ -191,18 +191,82 @@ test_cache_function_ret() {
     test_cache_function_assert_success "key2" 4
 }
 
-test_cache_coded() {
-    export CACHE_ENCODE="base64"
-    export CACHE_DECODE="base64 -d"
+test_cache_function_io() {
+    test_cache_function_io_call_count_file="$(mktemp)"
+    test_cache_function_io_function_called() {
+        test_cache_util_called_count "$test_cache_function_io_call_count_file" "$1"
+    }
+    test_cache_function_io_function() {
+        test_cache_util_incr_count "$test_cache_function_io_call_count_file"
+        grep "hit"
+    }
+    test_cache_function_io_function_dir="$(mktemp -d)"
+    test_cache_function_io_assert_success_want="$(mktemp)"
+    test_cache_function_io_assert_success() {
+        test_log "test_cache_function_io_assert_success $*"
+        test_cache_function_io_assert_success_got="$(mktemp)"
 
-    test_cache_scenario
+        cache_function_io test_cache_function_io_function "$1" "$test_cache_function_io_function_dir" > "$test_cache_function_io_assert_success_got"
+        test_cache_function_io_function_called "$2"
+        diff "$test_cache_function_io_assert_success_want" "$test_cache_function_io_assert_success_got"
+    }
+    test_cache_function_io_assert_failure() {
+        test_log "test_cache_function_io_assert_failure $*"
+        test_cache_function_io_assert_failure_want="$1"
+        test_cache_function_io_assert_failure_got=0
+        cache_function_io test_cache_function_io_function 300 "$test_cache_function_io_function_dir" || test_cache_function_io_assert_failure_got=$?
+        [ "$test_cache_function_io_assert_failure_want" = "$test_cache_function_io_assert_failure_got" ]
+    }
 
-    export CACHE_ENCODE=""
-    export CACHE_DECODE=""
+    test_cache_function_io_input1="$(mktemp)"
+    cat - <<EOS > "$test_cache_function_io_input1"
+hit
+miss
+hit
+EOS
+    test_cache_function_io_want1="$(mktemp)"
+    cat - <<EOS > "$test_cache_function_io_want1"
+hit
+hit
+EOS
+    test_cache_function_io_input2="$(mktemp)"
+    cat - <<EOS > "$test_cache_function_io_input2"
+hit
+miss
+hit2
+EOS
+    test_cache_function_io_want2="$(mktemp)"
+    cat - <<EOS > "$test_cache_function_io_want2"
+hit
+hit2
+EOS
+
+    test_cache_function_io_input3="$(mktemp)"
+    echo "failure" > "$test_cache_function_io_input3"
+
+    cat "$test_cache_function_io_want1" > "$test_cache_function_io_assert_success_want"
+    test_cache_function_io_assert_success 300 1 < "$test_cache_function_io_input1"
+    test_cache_function_io_assert_success 300 1 < "$test_cache_function_io_input1"
+    CACHE_FUNCTION_OVERWRITE=1 test_cache_function_io_assert_success 300 2 < "$test_cache_function_io_input1"
+    cat "$test_cache_function_io_want2" > "$test_cache_function_io_assert_success_want"
+    test_cache_function_io_assert_success 2 3 < "$test_cache_function_io_input2"
+    sleep 3
+    test_cache_function_io_assert_success 2 4 < "$test_cache_function_io_input2"
+
+    test_cache_function_io_function() {
+        test_cache_util_incr_count "$test_cache_function_io_call_count_file"
+    }
+    test_cache_function_io_assert_failure 1 < "$test_cache_function_io_input3"
+    test_cache_function_io_function() {
+        test_cache_util_incr_count "$test_cache_function_io_call_count_file"
+        echo "error"
+        return 1
+    }
+    test_cache_function_io_assert_failure 2 < "$test_cache_function_io_input3"
 }
 
 set -e
 test_run_multi "test_cache_scenario" \
                "test_cache_function" \
                "test_cache_function_ret" \
-               "test_cache_coded"
+               "test_cache_function_io"

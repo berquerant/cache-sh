@@ -29,6 +29,10 @@
 #   CACHE_DECODE
 #     Command to decode cache record.
 #     Default is base64 --decode
+#
+#   CACHE_HASH
+#     Command to calculate checksum.
+#     Default is sha256sum | cut -d ' ' -f 1
 
 __cache_kv_sep() {
     echo "${CACHE_KV_SEP:- }"
@@ -75,6 +79,26 @@ __cache_kv_file() {
 
 __cache_function_dir() {
     __ensure_dir "$(__cache_root "$1")/function/"
+}
+
+__cache_function_io_dir() {
+    __ensure_dir "$(__cache_root "$1")/function_io/"
+}
+
+__cache_function_io_kv_dir() {
+    __ensure_dir "$(__cache_function_io_dir "$1")/kv/"
+}
+
+__cache_function_io_files_dir() {
+    __ensure_dir "$(__cache_function_io_dir "$1")/files/"
+}
+
+__cache_function_io_hash() {
+    if [ -n "$CACHE_HASH" ] ; then
+        $CACHE_HASH
+    else
+        sha256sum | cut -d ' ' -f 1
+    fi
 }
 
 __cache_ttl() {
@@ -241,4 +265,55 @@ cache_function() {
         cache_set "$__cache_function_key" "$__cache_function_got" "$__cache_function_ttl" "$__cache_function_file"
     fi
     __cache_echo "$__cache_function_got"
+}
+
+# Get value from cache. If not, call the function and cache the result
+#
+# stdin: cache key
+# $1: name of function that consume stdin
+# $2: cache ttl, optional
+# $3: cache db directory, optional
+# $4: cache value files directory, optional
+#
+# The function input is cache key, output is cache value.
+# Cache keys into cache_db_dir/function_name.
+# Write cache even if cache hit when CACHE_FUNCTION_OVERWRITE is not empty.
+# Exit status if 1 if function do not output, 2 if function failed.
+cache_function_io() {
+    __cache_function_io_function="$1"
+    __cache_function_io_ttl="$(__cache_ttl "$2")"
+    __cache_function_io_kv="$(__cache_function_io_kv_dir "$3")/${__cache_function_io_function}"
+    __cache_function_io_files="$(__cache_function_io_files_dir "$3")/${__cache_function_io_function}"
+    touch "$__cache_function_io_kv"
+    mkdir -p "$__cache_function_io_files"
+
+    __cache_function_io_input="$(mktemp)"
+    __cache_function_io_input_hash="$(mktemp)"
+    tee "$__cache_function_io_input" | __cache_function_io_hash > "$__cache_function_io_input_hash"
+
+    __cache_function_io_key="$(cat "$__cache_function_io_input_hash")"
+    __cache_function_io_value_file="${__cache_function_io_files}/${__cache_function_io_key}"
+    __cache_function_io_hit=""
+    if [ -z "$CACHE_FUNCTION_OVERWRITE" ] ; then
+        # try to get cache
+        if [ -n "$(cache_get "$__cache_function_io_key" "$__cache_function_io_kv")" ] && [ -f "$__cache_function_io_value_file" ] ; then
+            __cache_function_io_hit=1
+        fi
+    fi
+    if [ -z "$__cache_function_io_hit" ] ; then
+        # cache miss
+        __cache_function_io_output="$(mktemp)"
+        if ! "$__cache_function_io_function" < "$__cache_function_io_input" > "$__cache_function_io_output" ; then
+            # function failure
+            return 2
+        fi
+        if [ ! -s "$__cache_function_io_output" ] ; then
+            # empty value
+            return 1
+        fi
+        __cache_encode < "$__cache_function_io_output" > "$__cache_function_io_value_file"
+        cache_set "$__cache_function_io_key" 1 "$__cache_function_io_ttl" "$__cache_function_io_kv"
+    fi
+
+    __cache_decode < "$__cache_function_io_value_file"
 }
