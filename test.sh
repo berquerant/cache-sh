@@ -50,41 +50,41 @@ test_cache_scenario() {
     cache_file="$(mktemp)"
 
     # no keys yet
-    test_cache_util_get_failure "key1" "$cache_file"
+    test_cache_util_get_failure "key1" "$cache_file" || return 1
     # set key1
     cache_set "key1" "value1" 300 "$cache_file"
     # get key1
-    test_cache_util_get_success "key1" "$cache_file" "value1"
+    test_cache_util_get_success "key1" "$cache_file" "value1" || return 1
     # set key2
     cache_set "key2" "value2" 300 "$cache_file"
     # update key1
     cache_set "key1" "value1_2" 300 "$cache_file"
     # get key1
-    test_cache_util_get_success "key1" "$cache_file" "value1_2"
+    test_cache_util_get_success "key1" "$cache_file" "value1_2" || return 1
     # get key2
-    test_cache_util_get_success "key2" "$cache_file" "value2"
+    test_cache_util_get_success "key2" "$cache_file" "value2" || return 1
     # get key1
-    test_cache_util_get_success "key1" "$cache_file" "value1_2"
+    test_cache_util_get_success "key1" "$cache_file" "value1_2" || return 1
     # get key2
-    test_cache_util_get_success "key2" "$cache_file" "value2"
+    test_cache_util_get_success "key2" "$cache_file" "value2" || return 1
     # set key3 with ttl 2 second
     cache_set "key3" "value3" 2 "$cache_file"
     # get key3
-    test_cache_util_get_success "key3" "$cache_file" "value3"
+    test_cache_util_get_success "key3" "$cache_file" "value3" || return 1
     # expire key3
     sleep 3
-    test_cache_util_get_failure "key3" "$cache_file"
+    test_cache_util_get_failure "key3" "$cache_file" || return 1
     # update key3
     cache_set "key3" "value3_2" 300 "$cache_file"
     # get key3
-    test_cache_util_get_success "key3" "$cache_file" "value3_2"
+    test_cache_util_get_success "key3" "$cache_file" "value3_2" || return 1
     # update key3 with ttl 2 second
     cache_set "key3" "value3_3" 2 "$cache_file"
     # get key3
-    test_cache_util_get_success "key3" "$cache_file" "value3_3"
+    test_cache_util_get_success "key3" "$cache_file" "value3_3" || return 1
     # expire key3
     sleep 3
-    test_cache_util_get_failure "key3" "$cache_file"
+    test_cache_util_get_failure "key3" "$cache_file" || return 1
 }
 
 test_cache_util_get_count() {
