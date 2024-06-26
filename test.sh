@@ -196,6 +196,7 @@ test_cache_function_io() {
     test_cache_function_io_function() {
         test_cache_util_incr_count "$test_cache_function_io_call_count_file"
         grep "hit"
+        echo "STDERR:$(test_cache_util_get_count "$test_cache_function_io_call_count_file")" > /dev/stderr
     }
     test_cache_function_io_function_dir="$(mktemp -d)"
     test_cache_function_io_assert_success_want="$(mktemp)"
