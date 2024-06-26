@@ -53,3 +53,18 @@ cache_function_args add 1 2 # 3, take 1 second
 cache_function_args add 1 2 # 3, instantly
 cache_function_args add 1 2 3 # 6, take 1 second
 ```
+
+## Cache by function arguments and input
+
+``` shell
+concat() {
+    sleep 1
+    echo "$(cat -)|$*"
+}
+
+echo hoge | cache_function_io_args concat 1 2 # hoge|1 2, take 1 second
+echo hoge | cache_function_io_args concat 1 2 # hoge|1 2, instantly
+echo foo | cache_function_io_args concat 1 2 # foo|1 2, take 1 second
+echo foo | cache_function_io_args concat 1 2 3 # foo|1 2 3, take 1 second
+echo foo | cache_function_io_args concat 1 2 3 # foo|1 2 3, instantly
+```

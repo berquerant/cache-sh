@@ -328,3 +328,54 @@ cache_function_io() {
 
     __cache_decode < "$__cache_function_io_value_file"
 }
+
+# Get value from cache. If not, call the function and cache the result
+#
+# stdin: cache key
+# $1: name of function that consume stdin
+# $2-: arguments
+#
+# The function arguments and input is cache key, output is cache value.
+# Cache keys into cache_db_dir/function_name.
+# Write cache even if cache hit when CACHE_FUNCTION_OVERWRITE is not empty.
+# Exit status if 1 if function do not output, 2 if function failed.
+cache_function_io_args() {
+    __cache_function_io_args_function="$1"
+    __cache_function_io_args_function_hash="$(echo "$*" | __cache_hash)"
+    shift
+    __cache_function_io_args_ttl="$(__cache_ttl "")"
+    __cache_function_io_args_kv="$(__cache_function_io_kv_dir "")/${__cache_function_io_args_function_hash}"
+    __cache_function_io_args_files="$(__cache_function_io_files_dir "")/${__cache_function_io_args_function_hash}"
+    touch "$__cache_function_io_args_kv"
+    mkdir -p "$__cache_function_io_args_files"
+
+    __cache_function_io_args_input="$(mktemp)"
+    __cache_function_io_args_input_hash="$(mktemp)"
+    tee "$__cache_function_io_args_input" | __cache_hash > "$__cache_function_io_args_input_hash"
+
+    __cache_function_io_args_key="$(cat "$__cache_function_io_args_input_hash")"
+    __cache_function_io_args_value_file="${__cache_function_io_args_files}/${__cache_function_io_args_key}"
+    __cache_function_io_args_hit=""
+    if [ -z "$CACHE_FUNCTION_OVERWRITE" ] ; then
+        # try to get cache
+        if [ -n "$(cache_get "$__cache_function_io_args_key" "$__cache_function_io_args_kv")" ] && [ -f "$__cache_function_io_args_value_file" ] ; then
+            __cache_function_io_args_hit=1
+        fi
+    fi
+    if [ -z "$__cache_function_io_args_hit" ] ; then
+        # cache miss
+        __cache_function_io_args_output="$(mktemp)"
+        if ! "$__cache_function_io_args_function" "$@" < "$__cache_function_io_args_input" > "$__cache_function_io_args_output" ; then
+            # function failure
+            return 2
+        fi
+        if [ ! -s "$__cache_function_io_args_output" ] ; then
+            # empty value
+            return 1
+        fi
+        __cache_encode < "$__cache_function_io_args_output" > "$__cache_function_io_args_value_file"
+        cache_set "$__cache_function_io_args_key" 1 "$__cache_function_io_args_ttl" "$__cache_function_io_args_kv"
+    fi
+
+    __cache_decode < "$__cache_function_io_args_value_file"
+}

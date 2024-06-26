@@ -318,9 +318,96 @@ test_cache_function_args() {
     test_cache_function_args_assert_failure 8 2 k111
 }
 
+test_cache_function_io_args() {
+    set -e
+    export CACHE_DIR="$(mktemp -d)"
+    test_cache_function_io_args_call_count_file="$(mktemp)"
+    test_cache_function_io_args_function_called() {
+        test_cache_util_called_count "$test_cache_function_io_args_call_count_file" "$1"
+    }
+    test_cache_function_io_args_function() {
+        test_cache_util_incr_count "$test_cache_function_io_args_call_count_file"
+        grep "hit"
+        echo "STDERR:$(test_cache_util_get_count "$test_cache_function_io_args_call_count_file")" > /dev/stderr
+    }
+
+    test_cache_function_io_args_assert_success_want="$(mktemp)"
+    test_cache_function_io_args_assert_success() {
+        test_log "test_cache_function_io_args_assert_success $*"
+        test_cache_function_io_args_assert_success_want_called="$1"
+        shift
+        test_cache_function_io_args_assert_success_got="$(mktemp)"
+
+        cache_function_io_args test_cache_function_io_args_function "$@" > "$test_cache_function_io_args_assert_success_got"
+        test_cache_function_io_args_function_called "$test_cache_function_io_args_assert_success_want_called" &&\
+            diff "$test_cache_function_io_args_assert_success_want" "$test_cache_function_io_args_assert_success_got"
+    }
+    test_cache_function_io_args_assert_failure() {
+        test_log "test_cache_function_io_args_assert_failure $*"
+        test_cache_function_io_args_assert_failure_want_called="$1"
+        test_cache_function_io_args_assert_failure_want_ret="$2"
+        shift 2
+        test_cache_function_io_args_assert_failure_got_ret="$(mktemp)"
+        echo 0 > "$test_cache_function_io_args_assert_failure_got_ret"
+        cache_function_io_args test_cache_function_io_args_function "$@" > /dev/null || echo $? > "$test_cache_function_io_args_assert_failure_got_ret"
+        [ "$test_cache_function_io_args_assert_failure_want_ret" = "$(cat "$test_cache_function_io_args_assert_failure_got_ret")" ] &&\
+            test_cache_function_io_args_function_called "$test_cache_function_io_args_assert_failure_want_called"
+    }
+
+    test_cache_function_io_args_input1="$(mktemp)"
+    cat - <<EOS > "$test_cache_function_io_args_input1"
+hit
+miss
+hit
+EOS
+    test_cache_function_io_args_want1="$(mktemp)"
+    cat - <<EOS > "$test_cache_function_io_args_want1"
+hit
+hit
+EOS
+    test_cache_function_io_args_input2="$(mktemp)"
+    cat - <<EOS > "$test_cache_function_io_args_input2"
+hit
+miss
+hit2
+EOS
+    test_cache_function_io_args_want2="$(mktemp)"
+    cat - <<EOS > "$test_cache_function_io_args_want2"
+hit
+hit2
+EOS
+
+    test_cache_function_io_args_input3="$(mktemp)"
+    echo "failure" > "$test_cache_function_io_args_input3"
+
+    cat "$test_cache_function_io_args_want1" > "$test_cache_function_io_args_assert_success_want"
+    test_cache_function_io_args_assert_success 1 k1 < "$test_cache_function_io_args_input1" || return 1
+    test_cache_function_io_args_assert_success 1 k1 < "$test_cache_function_io_args_input1" || return 1
+    CACHE_FUNCTION_OVERWRITE=1 test_cache_function_io_args_assert_success 2 k1 < "$test_cache_function_io_args_input1"
+    test_cache_function_io_args_assert_success 3 k2 < "$test_cache_function_io_args_input1" || return 1
+    test_cache_function_io_args_assert_success 4 k1 k2 < "$test_cache_function_io_args_input1" || return 1
+    cat "$test_cache_function_io_args_want2" > "$test_cache_function_io_args_assert_success_want"
+    test_cache_function_io_args_assert_success 5 k1 k2 < "$test_cache_function_io_args_input2" || return 1
+    test_cache_function_io_args_assert_success 5 k1 k2 < "$test_cache_function_io_args_input2" || return 1
+
+    test_cache_function_io_args_function() {
+        test_cache_util_incr_count "$test_cache_function_io_args_call_count_file"
+    }
+    test_cache_function_io_args_assert_failure 6 1 k11 < "$test_cache_function_io_args_input2" || return 1
+    test_cache_function_io_args_assert_failure 7 1 k11 < "$test_cache_function_io_args_input2" || return 1
+    test_cache_function_io_args_assert_failure 8 1 k11 < "$test_cache_function_io_args_input3" || return 1
+    test_cache_function_io_args_function() {
+        test_cache_util_incr_count "$test_cache_function_io_args_call_count_file"
+        echo "error"
+        return 1
+    }
+    test_cache_function_io_args_assert_failure 9 2 k111 < "$test_cache_function_io_args_input3" || return 1
+}
+
 set -e
 test_run_multi test_cache_scenario \
                test_cache_function \
                test_cache_function_ret \
                test_cache_function_io \
-               test_cache_function_args
+               test_cache_function_args \
+               test_cache_function_io_args
