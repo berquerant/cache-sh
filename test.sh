@@ -278,8 +278,8 @@ test_cache_function_args() {
         test_cache_function_args_assert_success_want_called="$1"
         shift
         test_cache_function_args_assert_success_got="$(cache_function_args test_cache_function_args_function "$@")"
-        [ "$test_cache_function_args_function_called" = "$*" ] &&\
-            test_cache_function_args_function_called "$test_cache_function_args_function_want_called"
+        [ "$test_cache_function_args_assert_success_got" = "$*" ] &&\
+            test_cache_function_args_function_called "$test_cache_function_args_assert_success_want_called"
     }
     test_cache_function_args_assert_failure() {
         test_log "test_cache_function_args_assert_failure $*"
@@ -292,22 +292,22 @@ test_cache_function_args() {
             [ "$test_cache_function_args_assert_failure_want_ret" = "$test_cache_function_args_assert_failure_ret" ]
     }
 
-    test_cache_function_args_assert_success 1 k1
-    test_cache_function_args_assert_success 1 k1
-    test_cache_function_args_assert_success 2 k2
-    test_cache_function_args_assert_success 3 k1 k2
-    test_cache_function_args_assert_success 3 k1 k2
-    CACHE_FUNCTION_OVERWRITE=1 test_cache_function_args_assert_success 4 k1 k2
-    test_cache_function_args_assert_success 4 k1 k2
-    test_cache_function_args_assert_success 4 k1
+    test_cache_function_args_assert_success 1 k1 || return 1
+    test_cache_function_args_assert_success 1 k1 || return 1
+    test_cache_function_args_assert_success 2 k2 || return 1
+    test_cache_function_args_assert_success 3 k1 k2 || return 1
+    test_cache_function_args_assert_success 3 k1 k2 || return 1
+    CACHE_FUNCTION_OVERWRITE=1 test_cache_function_args_assert_success 4 k1 k2 || return 1
+    test_cache_function_args_assert_success 4 k1 k2 || return 1
+    test_cache_function_args_assert_success 4 k1 || return 1
 
     test_cache_function_args_function() {
         test_cache_util_incr_count "$test_cache_function_args_function_call_count_file"
     }
 
-    test_cache_function_args_assert_failure 5 1 k11
-    test_cache_function_args_assert_failure 6 1 k11
-    test_cache_function_args_assert_failure 7 1 k11 k12
+    test_cache_function_args_assert_failure 5 1 k11 || return 1
+    test_cache_function_args_assert_failure 6 1 k11 || return 1
+    test_cache_function_args_assert_failure 7 1 k11 k12 || return 1
 
     test_cache_function_args_function() {
         test_cache_util_incr_count "$test_cache_function_args_function_call_count_file"
@@ -315,7 +315,7 @@ test_cache_function_args() {
         return 1
     }
 
-    test_cache_function_args_assert_failure 8 2 k111
+    test_cache_function_args_assert_failure 8 2 k111 || return 1
 }
 
 test_cache_function_io_args() {
