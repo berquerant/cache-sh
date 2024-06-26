@@ -39,3 +39,17 @@ test_rev() {
 echo hoge | cache_function_io test_rev # egoh, take 1 second
 echo hoge | cache_function_io test_rev # egoh, instantly
 ```
+
+## Cache by function arguments
+
+``` shell
+. ./cache.sh
+add() {
+    sleep 1
+    expr $(echo "$*" | sed 's/ / + /g')
+}
+
+cache_function_args add 1 2 # 3, take 1 second
+cache_function_args add 1 2 # 3, instantly
+cache_function_args add 1 2 3 # 6, take 1 second
+```

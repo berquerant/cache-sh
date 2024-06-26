@@ -242,6 +242,44 @@ cache_function() {
 
 # Get value from cache. If not, call the function and cache the result
 #
+# $1: name of function
+# $2-: keys
+#
+# Cache values into cache_dir/function_name.
+# Write cache even if cache hit when CACHE_FUNCTION_OVERWRITE is not empty.
+# Exit status is 1 if function do not output, 2 if function failed.
+cache_function_args() {
+    __cache_function_args_function="$1"
+    __cache_function_args_ttl="$(__cache_ttl "")"
+    __cache_function_args_file="$(__cache_function_dir "")/${__cache_function_args_function}"
+    touch "$__cache_function_args_file"
+    shift
+    __cache_function_args_key="$(echo "$*" | __cache_hash)"
+
+    __cache_function_args_got=""
+    if [ -z "$CACHE_FUNCTION_OVERWRITE" ] ; then
+        # try to get cache
+        __cache_function_args_got="$(cache_get "$__cache_function_args_key" "$__cache_function_args_file" || echo)"
+    fi
+    if [ -z "$__cache_function_args_got" ] ; then
+        # cache miss
+        __cache_function_args_ret="$(mktemp)"
+        __cache_function_args_got="$($__cache_function_args_function "$@" || echo $? > "$__cache_function_args_ret")"
+        if [ -s "$__cache_function_args_ret" ] ; then
+            return 2
+        fi
+        if [ -z "$__cache_function_args_got" ] ; then
+            # empty output is invalid
+            return 1
+        fi
+        # cache output
+        cache_set "$__cache_function_args_key" "$__cache_function_args_got" "$__cache_function_args_ttl" "$__cache_function_args_file"
+    fi
+    __cache_echo "$__cache_function_args_got"
+}
+
+# Get value from cache. If not, call the function and cache the result
+#
 # stdin: cache key
 # $1: name of function that consume stdin
 # $2: cache ttl, optional
