@@ -201,37 +201,6 @@ cache_get() {
     __cache_echo "$__cache_get_got" | __cache_line2value | __cache_decode
 }
 
-# Shrink db file by removing invalid records
-#
-# $1: cache db file, optional
-cache_vacuum() {
-    __cache_vaccum_file="$(__cache_kv_file "$1")"
-    # collect all keys
-    __cache_vaccum_keys="$(mktemp)"
-    __cache_line2key "$__cache_vaccum_file" | sort -u > "$__cache_vaccum_keys"
-
-    __cache_vaccum_tmp_file="$(mktemp)"
-    while read key ; do
-        __cache_vaccum_got="$(__cache_get "$key" "$__cache_vaccum_file")"
-        if [ -n "$__cache_vaccum_got" ] ; then
-            # collect latest values
-            __cache_echo "$__cache_vaccum_got" >> "$__cache_vaccum_tmp_file"
-        fi
-    done < "$__cache_vaccum_keys"
-    # overwrite by latest values
-    mv -f "$__cache_vaccum_tmp_file" "$__cache_vaccum_file"
-}
-
-# Shrink all db files in cache directory
-#
-# $1: cache directory, optional
-cache_vacuum_all() {
-    __cache_vacuum_all_dir="$(__cache_kv_dir "$1")"
-    find "$__cache_vacuum_all_dir" -type f | while read line ; do
-        cache_vacuum "$line"
-    done
-}
-
 # Get value from cache. If not, call the function and cache the result
 #
 # $1: name of function that take 1 argument

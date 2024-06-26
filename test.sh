@@ -45,11 +45,6 @@ test_cache_util_get_success() {
     cache_util_get_value="$(cache_get $1 $2)"
     [ "$cache_util_get_value" = "$3" ]
 }
-test_cache_util_check_lines() {
-    test_log "test_cache_util_check_lines $*"
-    cache_file_lines="$(wc -l $1 | awk '{print $1}')"
-    [ "$cache_file_lines" = $2 ]
-}
 
 test_cache_scenario() {
     cache_file="$(mktemp)"
@@ -68,12 +63,6 @@ test_cache_scenario() {
     test_cache_util_get_success "key1" "$cache_file" "value1_2"
     # get key2
     test_cache_util_get_success "key2" "$cache_file" "value2"
-    # check file lines
-    test_cache_util_check_lines "$cache_file" 3
-    # try vacuum
-    cache_vacuum "$cache_file"
-    # check file lines
-    test_cache_util_check_lines "$cache_file" 2
     # get key1
     test_cache_util_get_success "key1" "$cache_file" "value1_2"
     # get key2
@@ -96,8 +85,6 @@ test_cache_scenario() {
     # expire key3
     sleep 3
     test_cache_util_get_failure "key3" "$cache_file"
-    # check file lines
-    test_cache_util_check_lines "$cache_file" 5
 }
 
 test_cache_util_get_count() {
