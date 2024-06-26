@@ -243,24 +243,24 @@ EOS
     echo "failure" > "$test_cache_function_io_input3"
 
     cat "$test_cache_function_io_want1" > "$test_cache_function_io_assert_success_want"
-    test_cache_function_io_assert_success 300 1 < "$test_cache_function_io_input1"
-    test_cache_function_io_assert_success 300 1 < "$test_cache_function_io_input1"
-    CACHE_FUNCTION_OVERWRITE=1 test_cache_function_io_assert_success 300 2 < "$test_cache_function_io_input1"
+    test_cache_function_io_assert_success 300 1 < "$test_cache_function_io_input1" || return 1
+    test_cache_function_io_assert_success 300 1 < "$test_cache_function_io_input1" || return 1
+    CACHE_FUNCTION_OVERWRITE=1 test_cache_function_io_assert_success 300 2 < "$test_cache_function_io_input1" || return 1
     cat "$test_cache_function_io_want2" > "$test_cache_function_io_assert_success_want"
-    test_cache_function_io_assert_success 2 3 < "$test_cache_function_io_input2"
+    test_cache_function_io_assert_success 2 3 < "$test_cache_function_io_input2" || return 1
     sleep 3
-    test_cache_function_io_assert_success 2 4 < "$test_cache_function_io_input2"
+    test_cache_function_io_assert_success 2 4 < "$test_cache_function_io_input2" || return 1
 
     test_cache_function_io_function() {
         test_cache_util_incr_count "$test_cache_function_io_call_count_file"
     }
-    test_cache_function_io_assert_failure 1 < "$test_cache_function_io_input3"
+    test_cache_function_io_assert_failure 1 < "$test_cache_function_io_input3" || return 1
     test_cache_function_io_function() {
         test_cache_util_incr_count "$test_cache_function_io_call_count_file"
         echo "error"
         return 1
     }
-    test_cache_function_io_assert_failure 2 < "$test_cache_function_io_input3"
+    test_cache_function_io_assert_failure 2 < "$test_cache_function_io_input3" || return 1
 }
 
 test_cache_function_args() {
