@@ -131,17 +131,17 @@ test_cache_util_function_call() {
 }
 
 test_cache_function() {
-    test_cache_util_function_call "key1" 300 1
-    test_cache_util_function_call "key1" 300 1
-    test_cache_util_function_call "key2" 300 2
-    test_cache_util_function_call "key3" 2 3
-    test_cache_util_function_call "key3" 2 3
+    test_cache_util_function_call "key1" 300 1 || return 1
+    test_cache_util_function_call "key1" 300 1 || return 1
+    test_cache_util_function_call "key2" 300 2 || return 1
+    test_cache_util_function_call "key3" 2 3 || return 1
+    test_cache_util_function_call "key3" 2 3 || return 1
     sleep 3
-    test_cache_util_function_call "key3" 300 4
-    test_cache_util_function_call "key3" 300 4
-    CACHE_FUNCTION_OVERWRITE=1 test_cache_util_function_call "key3" 300 5
-    CACHE_FUNCTION_OVERWRITE=1 test_cache_util_function_call "key3" 300 6
-    test_cache_util_function_call "key3" 300 6
+    test_cache_util_function_call "key3" 300 4 || return 1
+    test_cache_util_function_call "key3" 300 4 || return 1
+    CACHE_FUNCTION_OVERWRITE=1 test_cache_util_function_call "key3" 300 5 || return 1
+    CACHE_FUNCTION_OVERWRITE=1 test_cache_util_function_call "key3" 300 6 || return 1
+    test_cache_util_function_call "key3" 300 6 || return 1
 }
 
 test_cache_function_ret() {
@@ -319,7 +319,6 @@ test_cache_function_args() {
 }
 
 test_cache_function_io_args() {
-    set -e
     export CACHE_DIR="$(mktemp -d)"
     test_cache_function_io_args_call_count_file="$(mktemp)"
     test_cache_function_io_args_function_called() {
