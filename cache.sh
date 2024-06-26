@@ -93,7 +93,7 @@ __cache_function_io_files_dir() {
     __ensure_dir "$(__cache_function_io_dir "$1")/files/"
 }
 
-__cache_function_io_hash() {
+__cache_hash() {
     if [ -n "$CACHE_HASH" ] ; then
         $CACHE_HASH
     else
@@ -138,7 +138,7 @@ cache_set() {
         return 1
     fi
 
-    __cache_set_key="$(echo "$__cache_set_key" | __cache_encode)"
+    __cache_set_key="$(echo "$__cache_set_key" | __cache_hash)"
     __cache_set_value="$(echo "$__cache_set_value" | __cache_encode)"
     __cache_set_timestamp="$(__cache_timestamp_now)"
     __cache_set_kv_sep="$(__cache_kv_sep)"
@@ -192,7 +192,7 @@ __cache_get() {
 #
 # Exit status is 1 if not found
 cache_get() {
-    __cache_get_key="$(echo "$1" | __cache_encode)"
+    __cache_get_key="$(echo "$1" | __cache_hash)"
     __cache_get_got="$(__cache_get "$__cache_get_key" "$2")"
     if [ -z "$__cache_get_got" ] ; then
         # empty is invalid
@@ -293,7 +293,7 @@ cache_function_io() {
 
     __cache_function_io_input="$(mktemp)"
     __cache_function_io_input_hash="$(mktemp)"
-    tee "$__cache_function_io_input" | __cache_function_io_hash > "$__cache_function_io_input_hash"
+    tee "$__cache_function_io_input" | __cache_hash > "$__cache_function_io_input_hash"
 
     __cache_function_io_key="$(cat "$__cache_function_io_input_hash")"
     __cache_function_io_value_file="${__cache_function_io_files}/${__cache_function_io_key}"
