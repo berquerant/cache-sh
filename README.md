@@ -16,7 +16,7 @@ sleep 4
 cache_get key2 # empty
 ```
 
-## Function caches
+## Cache by function argument
 
 ``` shell
 . ./cache.sh
@@ -28,7 +28,7 @@ cache_function add1 1 # take 1 second to get 2
 cache_function add1 1 # get 2 instantly
 ```
 
-## Function IO caches
+## Cache by function input
 
 ``` shell
 . ./cache.sh
@@ -57,6 +57,7 @@ cache_function_args add 1 2 3 # 6, take 1 second
 ## Cache by function arguments and input
 
 ``` shell
+. ./cache.sh
 concat() {
     sleep 1
     echo "$(cat -)|$*"
