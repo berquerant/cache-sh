@@ -34,7 +34,7 @@
 #     Command to calculate checksum.
 #     Default is sha256sum | cut -d ' ' -f 1
 #
-#   CACHE_FUNCTION_OVERWRITE
+#   CACHE_FUNCTION_NO_CACHE
 #     For cache_function*.
 #     If not empty, call function even if cached.
 
@@ -213,7 +213,7 @@ cache_get() {
 # $4: cache db directory, optional
 #
 # Cache values into cache_dir/function_name.
-# Write cache even if cache hit when CACHE_FUNCTION_OVERWRITE is not empty.
+# Write cache even if cache hit when CACHE_FUNCTION_NO_CACHE is not empty.
 # Exit status is 1 if function do not output, 2 if function failed.
 cache_function() {
     __cache_function_function="$1"
@@ -223,7 +223,7 @@ cache_function() {
     touch "$__cache_function_file"
 
     __cache_function_got=""
-    if [ -z "$CACHE_FUNCTION_OVERWRITE" ] ; then
+    if [ -z "$CACHE_FUNCTION_NO_CACHE" ] ; then
         # try to get cache
         __cache_function_got="$(cache_get "$__cache_function_key" "$__cache_function_file" || echo)"
     fi
@@ -250,7 +250,7 @@ cache_function() {
 # $2-: keys
 #
 # Cache values into cache_dir/function_name.
-# Write cache even if cache hit when CACHE_FUNCTION_OVERWRITE is not empty.
+# Write cache even if cache hit when CACHE_FUNCTION_NO_CACHE is not empty.
 # Exit status is 1 if function do not output, 2 if function failed.
 cache_function_args() {
     __cache_function_args_function="$1"
@@ -261,7 +261,7 @@ cache_function_args() {
     __cache_function_args_key="$(echo "$*" | __cache_hash)"
 
     __cache_function_args_got=""
-    if [ -z "$CACHE_FUNCTION_OVERWRITE" ] ; then
+    if [ -z "$CACHE_FUNCTION_NO_CACHE" ] ; then
         # try to get cache
         __cache_function_args_got="$(cache_get "$__cache_function_args_key" "$__cache_function_args_file" || echo)"
     fi
@@ -292,7 +292,7 @@ cache_function_args() {
 #
 # The function input is cache key, output is cache value.
 # Cache keys into cache_db_dir/function_name.
-# Write cache even if cache hit when CACHE_FUNCTION_OVERWRITE is not empty.
+# Write cache even if cache hit when CACHE_FUNCTION_NO_CACHE is not empty.
 # Exit status if 1 if function do not output, 2 if function failed.
 cache_function_io() {
     __cache_function_io_function="$1"
@@ -309,7 +309,7 @@ cache_function_io() {
     __cache_function_io_key="$(cat "$__cache_function_io_input_hash")"
     __cache_function_io_value_file="${__cache_function_io_files}/${__cache_function_io_key}"
     __cache_function_io_hit=""
-    if [ -z "$CACHE_FUNCTION_OVERWRITE" ] ; then
+    if [ -z "$CACHE_FUNCTION_NO_CACHE" ] ; then
         # try to get cache
         if [ -n "$(cache_get "$__cache_function_io_key" "$__cache_function_io_kv")" ] && [ -f "$__cache_function_io_value_file" ] ; then
             __cache_function_io_hit=1
@@ -341,7 +341,7 @@ cache_function_io() {
 #
 # The function arguments and input is cache key, output is cache value.
 # Cache keys into cache_db_dir/function_name.
-# Write cache even if cache hit when CACHE_FUNCTION_OVERWRITE is not empty.
+# Write cache even if cache hit when CACHE_FUNCTION_NO_CACHE is not empty.
 # Exit status if 1 if function do not output, 2 if function failed.
 cache_function_io_args() {
     __cache_function_io_args_function="$1"
@@ -360,7 +360,7 @@ cache_function_io_args() {
     __cache_function_io_args_key="$(cat "$__cache_function_io_args_input_hash")"
     __cache_function_io_args_value_file="${__cache_function_io_args_files}/${__cache_function_io_args_key}"
     __cache_function_io_args_hit=""
-    if [ -z "$CACHE_FUNCTION_OVERWRITE" ] ; then
+    if [ -z "$CACHE_FUNCTION_NO_CACHE" ] ; then
         # try to get cache
         if [ -n "$(cache_get "$__cache_function_io_args_key" "$__cache_function_io_args_kv")" ] && [ -f "$__cache_function_io_args_value_file" ] ; then
             __cache_function_io_args_hit=1

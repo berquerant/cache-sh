@@ -119,7 +119,7 @@ test_cache_util_function_function_called() {
 test_cache_function_cache_dir="$(mktemp -d)"
 
 test_cache_util_function_call() {
-    test_log "test_cache_util_function_call $* CACHE_FUNCTION_OVERWRITE=${CACHE_FUNCTION_OVERWRITE}"
+    test_log "test_cache_util_function_call $* CACHE_FUNCTION_NO_CACHE=${CACHE_FUNCTION_NO_CACHE}"
     test_cache_util_function_call_key="$1"
     test_cache_util_function_call_ttl="$2"
     test_cache_util_function_call_count="$3"
@@ -139,8 +139,8 @@ test_cache_function() {
     sleep 3
     test_cache_util_function_call "key3" 300 4 || return 1
     test_cache_util_function_call "key3" 300 4 || return 1
-    CACHE_FUNCTION_OVERWRITE=1 test_cache_util_function_call "key3" 300 5 || return 1
-    CACHE_FUNCTION_OVERWRITE=1 test_cache_util_function_call "key3" 300 6 || return 1
+    CACHE_FUNCTION_NO_CACHE=1 test_cache_util_function_call "key3" 300 5 || return 1
+    CACHE_FUNCTION_NO_CACHE=1 test_cache_util_function_call "key3" 300 6 || return 1
     test_cache_util_function_call "key3" 300 6 || return 1
 }
 
@@ -245,7 +245,7 @@ EOS
     cat "$test_cache_function_io_want1" > "$test_cache_function_io_assert_success_want"
     test_cache_function_io_assert_success 300 1 < "$test_cache_function_io_input1" || return 1
     test_cache_function_io_assert_success 300 1 < "$test_cache_function_io_input1" || return 1
-    CACHE_FUNCTION_OVERWRITE=1 test_cache_function_io_assert_success 300 2 < "$test_cache_function_io_input1" || return 1
+    CACHE_FUNCTION_NO_CACHE=1 test_cache_function_io_assert_success 300 2 < "$test_cache_function_io_input1" || return 1
     cat "$test_cache_function_io_want2" > "$test_cache_function_io_assert_success_want"
     test_cache_function_io_assert_success 2 3 < "$test_cache_function_io_input2" || return 1
     sleep 3
@@ -297,7 +297,7 @@ test_cache_function_args() {
     test_cache_function_args_assert_success 2 k2 || return 1
     test_cache_function_args_assert_success 3 k1 k2 || return 1
     test_cache_function_args_assert_success 3 k1 k2 || return 1
-    CACHE_FUNCTION_OVERWRITE=1 test_cache_function_args_assert_success 4 k1 k2 || return 1
+    CACHE_FUNCTION_NO_CACHE=1 test_cache_function_args_assert_success 4 k1 k2 || return 1
     test_cache_function_args_assert_success 4 k1 k2 || return 1
     test_cache_function_args_assert_success 4 k1 || return 1
 
@@ -382,7 +382,7 @@ EOS
     cat "$test_cache_function_io_args_want1" > "$test_cache_function_io_args_assert_success_want"
     test_cache_function_io_args_assert_success 1 k1 < "$test_cache_function_io_args_input1" || return 1
     test_cache_function_io_args_assert_success 1 k1 < "$test_cache_function_io_args_input1" || return 1
-    CACHE_FUNCTION_OVERWRITE=1 test_cache_function_io_args_assert_success 2 k1 < "$test_cache_function_io_args_input1"
+    CACHE_FUNCTION_NO_CACHE=1 test_cache_function_io_args_assert_success 2 k1 < "$test_cache_function_io_args_input1"
     test_cache_function_io_args_assert_success 3 k2 < "$test_cache_function_io_args_input1" || return 1
     test_cache_function_io_args_assert_success 4 k1 k2 < "$test_cache_function_io_args_input1" || return 1
     cat "$test_cache_function_io_args_want2" > "$test_cache_function_io_args_assert_success_want"
