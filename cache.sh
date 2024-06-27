@@ -33,6 +33,10 @@
 #   CACHE_HASH
 #     Command to calculate checksum.
 #     Default is sha256sum | cut -d ' ' -f 1
+#
+#   CACHE_FUNCTION_OVERWRITE
+#     For cache_function*.
+#     If not empty, call function even if cached.
 
 __cache_kv_sep() {
     echo "${CACHE_KV_SEP:- }"
