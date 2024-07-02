@@ -16,7 +16,7 @@
 #
 #   CACHE_DIR
 #     Diretory for cache files.
-#     Default is $HOME/.cache-sh/
+#     Default is $XDG_CACHE_HOME/cache-sh
 #
 #   CACHE_TTL
 #     Cache record ttl seconds.
@@ -70,7 +70,7 @@ __ensure_file() {
 }
 
 __cache_root() {
-    __ensure_dir "${1:-${CACHE_DIR:-$HOME/.cache-sh/}}"
+    __ensure_dir "${1:-${CACHE_DIR:-${XDG_CACHE_HOME:-$HOME/.cache}/.cache-sh/}}"
 }
 
 __cache_kv_dir() {
