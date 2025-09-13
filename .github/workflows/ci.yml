@@ -1,7 +1,6 @@
 name: CI
 
-permissions:
-  contents: read
+permissions: {}
 
 on:
   push:
@@ -14,8 +13,12 @@ on:
 jobs:
   check:
     timeout-minutes: 5
+    permissions:
+      contents: read
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
       - name: Test
         run: ./test.sh
